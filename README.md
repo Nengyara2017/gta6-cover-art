@@ -1,14 +1,33 @@
-# gta6-cover-art
+# Vice Coast Cover Studio 2
 
-[![make.fun · gta6-cover-art-01](https://make.fun/badge/gta6-cover-art-01.svg)](https://make.fun/bounty/gta6-cover-art-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01)
-[![rank](https://make.fun/badge/gta6-cover-art-01/Nengyara2017/gta6-cover-art/rank.svg)](https://make.fun/bounty/gta6-cover-art-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01)
-[![reward](https://make.fun/badge/gta6-cover-art-01/Nengyara2017/gta6-cover-art/reward.svg)](https://make.fun/bounty/gta6-cover-art-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01)
+[![make.fun](https://img.shields.io/badge/make.fun-gta6--cover--art--01-ff2e88)](https://make.fun/c/gta6-cover-art-01)
 
-**Vice Coast Cover Studio 2** — turn any photo and a caption into GTA-poster-style
-cover art, offline, in your browser. Six multi-panel layouts, seven Vice City
-colour grades, four one-click preset looks, per-panel crop and positioning,
-undo/redo, bold gradient caption lettering with a neon script subtitle, and PNG
-export in 1080×1080, 1080×1350, 1920×1080 and 1080×1920.
+Turn your photo into GTA-style cover art: the multi-panel poster look, bold
+caption lettering and a Vice City sunset or neon colour grade, exported as a
+PNG to share.
+
+## What it does
+
+- **6 layouts** — Vice Grid (hero + 2), Nine Panel (3×3), Full Bleed,
+  Tilted Snaps (rotated polaroids), Sunset Strip (wide hero + 3-panel strip),
+  Comic Bands (diagonal GTA loading-screen bands).
+- **7 colour grades** — Sunset, Neon Night, Gold Hour, Teal Vice, Magenta
+  Rush, Noir Vice, Pastel Dawn. Gradient-map + duotone canvas grades.
+- **4 one-click presets** — Lucia Nights, Jason Drive, Vice Sunset, Neon
+  Heat. Layout + grade + caption in one tap: photo to PNG in a click.
+- **4 export sizes** — 1080×1080, 1080×1350, 1920×1080, 1080×1920, plus
+  **Export all sizes** (all four PNGs at once).
+- **Per-panel controls** — click to select, drag to pan, scroll to zoom,
+  sliders for zoom / pan X / pan Y, rotate 90°, flip horizontal, per-panel
+  photo picker, "one photo fills all panels" toggle.
+- **Typography** — condensed heavy title with sunset-gradient fill, dark
+  outline and hard offset shadow (auto-fits the cover width), neon script
+  subtitle with glow, "VICE CITY — EST. 2026" badge ribbon, halftone dots,
+  a 5-star heat meter, grain + vignette toggles.
+- **Undo / redo** — Ctrl+Z / Ctrl+Y for every edit.
+- **Photos** — upload your own (multi-file, drag & drop) or use the four
+  built-in sample scenes, painted in code: Boulevard Sunset, Neon Street,
+  Pier Day, Rooftop Dusk. No binary assets anywhere in the repo.
 
 ## Run it
 
@@ -17,30 +36,21 @@ node serve.ts
 # open http://localhost:8080
 ```
 
-No build step, no network: serve `app/` with any static file server and open
-`app/index.html` in desktop Chrome. Every script is a file under `app/`; the
-sample scenes are painted in code on canvas, so the repo ships zero binary
-assets. Your photos are read on your own machine and never uploaded.
+Static files under `app/` only, no network requests, no build step. Works
+offline in desktop Chrome. Original art, painted in code — no Rockstar logo,
+artwork or font.
 
-The four screenshots under `screenshots/` are stored as single-line base64
-text (`<name>.jpg.b64` — the GitHub push path carries text files only) and
-`main.ts` decodes them back to the exact JPEG bytes when it hands the entry
-in, so the gate and the judge see real screenshots.
+## Hand it in
 
-## How it works
+```sh
+mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
+```
 
-1. Drop in one or more photos (or use the built-in Vice City scenes).
-2. Pick a layout: **Vice Grid** (hero + two), **Nine Panel** (3×3),
-   **Full Bleed**, **Tilted Snaps**, **Sunset Strip** (hero + three) or
-   **Comic Bands** (diagonal loading-screen bands).
-3. Pick a grade (**Sunset**, **Neon Night**, **Gold Hour**, **Teal Vice**,
-   **Magenta Rush**, **Noir Vice**, **Pastel Dawn**) or a one-click preset
-   (**Lucia Nights**, **Jason Drive**, **Vice Sunset**, **Neon Heat**).
-4. Click a panel to select it, drag to pan, scroll to zoom — or use the
-   zoom / pan sliders, rotate and flip. Each panel can hold its own photo,
-   or one photo can fill every panel.
-5. Write the title, subtitle and badge ribbon; set the heat (★) and title size.
-6. Export one PNG size, or all four at once.
+`main.ts` (Node 22 stdlib only) copies `app/` and `screenshots/` to
+`/output` and writes `/output/dossier.json`. Screenshots ship in the repo as
+single-line base64 text (`screenshots/*.jpg.b64`) and are decoded to real
+JPEGs at hand-in, so the repository stays text-only.
 
-Everything is original: no Rockstar Games logo, artwork or font. Lettering
-uses a condensed system face with a gradient fill, outline and hard shadow.
+## License
+
+MIT — see `LICENSE`.

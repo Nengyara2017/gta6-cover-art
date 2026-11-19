@@ -1,113 +1,172 @@
-// Editor state: what the cover is made of, plus undo/redo history and the
-// one-click preset looks. The renderer (cover.js) only reads this state,
-// so every control below just edits the state and asks for a repaint.
+// Editor state, undo/redo history, presets and photo uploads.
+// State is plain JSON (photo ids only — uploaded pixels live in the
+// module-level `uploads` map, never in state, so history stays cheap).
 
-import { panelCount, PRESETS } from './cover.js';
-import { SCENES, sceneCanvas } from './scenes.js';
+import { LAYOUTS, PRESETS, layoutPanelCount } from './cover.js';
 
-export const SCENE_IDS = Object.keys(SCENES);
+export const SCENE_PHOTOS = ['boulevard', 'neon', 'pier', 'rooftop'];
 
-export function defaultPanels(layoutId, photoCount) {
-  const n = panelCount(layoutId);
-  const panels = [];
-  for (let i = 0; i < n; i++) {
-    panels.push({ photo: i % Math.max(1, photoCount), zoom: 100, panX: 0, panY: 0, rot: 0, flip: false });
-  }
-  return panels;
+export const uploads = new Map(); // id -> HTMLImageElement
+let uploadSeq = 0;
+
+export function defaultPanel(photo) {
+  return { photo, zoom: 1, panX: 0, panY: 0, rotate: 0, flip: false };
 }
 
 export function defaultState() {
   return {
     layout: 'vice-grid',
     grade: 'sunset',
-    title: 'VICE HEIST',
+    size: '1080x1080',
+    title: 'VICE SUNSET',
     subtitle: 'a Lucia & Jason story',
-    badge: 'VICE CITY • EST. 2026',
-    titleSize: 100,
+    badge: 'VICE CITY — EST. 2026',
     stars: 5,
-    size: '1920x1080',
+    titleSize: 1,
+    titleY: 0.2,
+    grain: true,
+    vignette: true,
     fillAll: true,
-    photos: [],
-    panels: defaultPanels('vice-grid', 1),
     selected: 0,
-    effects: { grain: true, vignette: true, halftone: true },
+    panels: [
+      defaultPanel('boulevard'),
+      defaultPanel('neon'),
+      defaultPanel('pier'),
+      defaultPanel('rooftop'),
+      defaultPanel('boulevard'),
+      defaultPanel('neon'),
+      defaultPanel('pier'),
+      defaultPanel('rooftop'),
+      defaultPanel('boulevard'),
+    ],
   };
 }
 
-// A photo is { name, img } where img is a canvas or an <img>. Scene photos
-// are painted in code at a generous size so panels stay sharp.
-export function makeScenePhoto(sceneId) {
-  return { name: SCENES[sceneId].name, img: sceneCanvas(sceneId, 1200, 900), scene: sceneId };
-}
-
-export function loadSamplePhotos(state) {
-  state.photos = SCENE_IDS.map(makeScenePhoto);
-  state.panels = defaultPanels(state.layout, state.photos.length);
-  state.selected = 0;
-  return state;
-}
-
-export function applyPreset(state, presetName) {
-  const preset = PRESETS.find((p) => p.name === presetName);
-  if (!preset) return state;
-  state.layout = preset.layout;
-  state.grade = preset.grade;
-  state.title = preset.title;
-  state.subtitle = preset.subtitle;
-  state.badge = preset.badge;
-  state.panels = defaultPanels(state.layout, Math.max(1, state.photos.length));
-  state.selected = 0;
-  return state;
-}
-
-export function setLayout(state, layoutId) {
-  const old = state.panels;
-  state.layout = layoutId;
-  const next = defaultPanels(layoutId, Math.max(1, state.photos.length));
-  // Keep per-panel tweaks where the new layout has the same panel index.
-  for (let i = 0; i < Math.min(old.length, next.length); i++) {
-    next[i] = { ...next[i], zoom: old[i].zoom, panX: old[i].panX, panY: old[i].panY, rot: old[i].rot, flip: old[i].flip };
-  }
-  state.panels = next;
-  state.selected = 0;
-  return state;
-}
-
-// Undo/redo over plain snapshots of the state (photos hold image objects,
-// so snapshots keep the photo list by reference and only copy the rest).
-export function snapshot(state) {
-  const { photos, ...rest } = state;
-  return JSON.parse(JSON.stringify(rest));
-}
-
-export function restoreSnapshot(state, snap) {
-  const photos = state.photos;
-  for (const key of Object.keys(state)) delete state[key];
-  Object.assign(state, snap, { photos });
-  return state;
+export function cloneState(state) {
+  return JSON.parse(JSON.stringify(state));
 }
 
 export class History {
-  constructor(state) {
-    this.state = state;
+  constructor(limit = 60) {
+    this.limit = limit;
     this.past = [];
     this.future = [];
   }
-  push() {
-    this.past.push(snapshot(this.state));
-    if (this.past.length > 60) this.past.shift();
-    this.future = [];
+
+  push(state) {
+    this.past.push(cloneState(state));
+    if (this.past.length > this.limit) this.past.shift();
+    this.future.length = 0;
   }
-  undo() {
-    if (this.past.length === 0) return false;
-    this.future.push(snapshot(this.state));
-    restoreSnapshot(this.state, this.past.pop());
-    return true;
+
+  undo(state) {
+    if (!this.past.length) return null;
+    this.future.push(cloneState(state));
+    return this.past.pop();
   }
-  redo() {
-    if (this.future.length === 0) return false;
-    this.past.push(snapshot(this.state));
-    restoreSnapshot(this.state, this.future.pop());
-    return true;
+
+  redo(state) {
+    if (!this.future.length) return null;
+    this.past.push(cloneState(state));
+    return this.future.pop();
   }
+
+  get canUndo() { return this.past.length > 0; }
+  get canRedo() { return this.future.length > 0; }
+}
+
+export function applyPreset(state, presetId) {
+  const preset = PRESETS[presetId];
+  if (!preset) return state;
+  const next = cloneState(state);
+  next.layout = preset.layout;
+  next.grade = preset.grade;
+  next.title = preset.title;
+  next.subtitle = preset.subtitle;
+  next.selected = 0;
+  return next;
+}
+
+export function setLayout(state, layout) {
+  const next = cloneState(state);
+  next.layout = layout;
+  next.selected = 0;
+  return next;
+}
+
+// Make sure every panel the layout shows has a photo; layouts with more
+// panels than the state knows reuse the first panel's photo.
+export function ensurePanels(state) {
+  const next = cloneState(state);
+  const n = layoutPanelCount(next.layout);
+  while (next.panels.length < n) next.panels.push(defaultPanel(next.panels[0]?.photo || 'boulevard'));
+  return next;
+}
+
+export function selectedPanel(state) {
+  return state.panels[state.selected] || state.panels[0];
+}
+
+export function updateSelectedPanel(state, patch) {
+  const next = cloneState(state);
+  const panel = next.panels[next.selected] || next.panels[0];
+  Object.assign(panel, patch);
+  if (next.fillAll) {
+    for (const p of next.panels) p.photo = panel.photo;
+  }
+  return next;
+}
+
+export function rotateSelected(state) {
+  const next = cloneState(state);
+  const panel = next.panels[next.selected] || next.panels[0];
+  panel.rotate = ((panel.rotate || 0) + 90) % 360;
+  return next;
+}
+
+export function flipSelected(state) {
+  const next = cloneState(state);
+  const panel = next.panels[next.selected] || next.panels[0];
+  panel.flip = !panel.flip;
+  return next;
+}
+
+export function resetSelectedPanel(state) {
+  const next = cloneState(state);
+  const panel = next.panels[next.selected] || next.panels[0];
+  const photo = panel.photo;
+  Object.assign(panel, defaultPanel(photo));
+  return next;
+}
+
+// Read uploaded files into Images and register them as photo ids.
+export async function addUploads(files) {
+  const added = [];
+  for (const file of files) {
+    if (!file.type.startsWith('image/')) continue;
+    const dataUrl = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(new Error('read failed'));
+      reader.readAsDataURL(file);
+    });
+    const img = new Image();
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = () => reject(new Error('image failed'));
+      img.src = dataUrl;
+    });
+    const id = `upload:${++uploadSeq}`;
+    uploads.set(id, img);
+    added.push({ id, name: file.name });
+  }
+  return added;
+}
+
+export function photoLabel(id) {
+  if (id.startsWith('upload:')) {
+    const n = id.slice('upload:'.length);
+    return `Uploaded photo ${n}`;
+  }
+  return { boulevard: 'Boulevard Sunset', neon: 'Neon Street', pier: 'Pier Day', rooftop: 'Rooftop Dusk' }[id] || id;
 }

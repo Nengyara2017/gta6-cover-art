@@ -1,9 +1,9 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Vice Coast Cover Studio 2 — GTA 6-style cover art maker</title>
+<title>Vice Coast Cover Studio 2 — GTA 6 Cover Art Maker</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,120 +11,109 @@
   <div class="brand">
     <span class="brand-mark">VC</span>
     <div>
-      <h1>VICE COAST <span>COVER STUDIO 2</span></h1>
-      <p>Turn any photo + caption into GTA-poster cover art — offline, in your browser.</p>
+      <h1>Vice Coast Cover Studio 2</h1>
+      <p>Turn your photo into GTA-style cover art — Vice City sunset, neon grades, bold lettering.</p>
     </div>
   </div>
   <div class="top-actions">
-    <button id="undoBtn" title="Undo (Ctrl+Z)">↩ Undo</button>
-    <button id="redoBtn" title="Redo (Ctrl+Y)">↪ Redo</button>
-    <button id="exportAllBtn" class="primary">⬇ Export all 4 sizes</button>
+    <button id="undo-btn" type="button" title="Undo (Ctrl+Z)">↩ Undo</button>
+    <button id="redo-btn" type="button" title="Redo (Ctrl+Y)">↪ Redo</button>
+    <select id="size-select" aria-label="Export size">
+      <option value="1080x1080">Square 1080 × 1080</option>
+      <option value="1080x1350">Portrait 1080 × 1350</option>
+      <option value="1920x1080">Landscape 1920 × 1080</option>
+      <option value="1080x1920">Story 1080 × 1920</option>
+    </select>
+    <button id="export-btn" type="button" class="primary">Export PNG</button>
+    <button id="export-all-btn" type="button">Export all 4 sizes</button>
   </div>
 </header>
 
-<main class="workspace">
-  <section class="stage-col">
-    <div class="stage-toolbar">
-      <span id="sizeLabel">1080 × 1080 · square post</span>
-      <span id="panelHint">Click a panel to select it — drag to pan, scroll to zoom.</span>
-    </div>
-    <div class="stage-wrap">
-      <canvas id="preview" width="900" height="900"></canvas>
-      <div id="dropHint" class="drop-hint">Drop photos here — or use “Add photos”</div>
-    </div>
-    <div class="filmstrip" id="filmstrip" aria-label="Your photos"></div>
-  </section>
-
+<main class="layout">
   <aside class="controls">
-    <section class="card">
-      <h2>1 · Photos</h2>
-      <div class="row">
-        <button id="addPhotosBtn">＋ Add photos</button>
-        <button id="sampleBtn" title="Load the four built-in Vice City scenes">★ Load sample scenes</button>
-      </div>
-      <input id="fileInput" type="file" accept="image/*" multiple hidden>
-      <label class="check"><input type="checkbox" id="fillAllBox" checked> One photo fills every panel</label>
-      <p class="note">Your photos never leave this machine — they are read in your browser and never uploaded.</p>
+    <section>
+      <h2>1 · One-click presets</h2>
+      <p class="hint">Layout + grade + caption in one tap — photo to PNG in a click.</p>
+      <div id="preset-bar" class="pick-row"></div>
     </section>
 
-    <section class="card">
+    <section>
       <h2>2 · Layout</h2>
-      <div class="grid2" id="layoutGrid"></div>
+      <div id="layout-bar" class="pick-row"></div>
+    </section>
+
+    <section>
       <h2>3 · Colour grade</h2>
-      <div class="grid2" id="gradeGrid"></div>
+      <div id="grade-bar" class="pick-row"></div>
     </section>
 
-    <section class="card">
+    <section>
       <h2>4 · Caption</h2>
-      <label class="field">Title
-        <input id="titleInput" type="text" maxlength="24" value="VICE HEIST">
+      <label>Title
+        <input id="title-input" type="text" maxlength="24" value="VICE SUNSET">
       </label>
-      <label class="field">Subtitle (neon script)
-        <input id="subtitleInput" type="text" maxlength="40" value="a Lucia &amp; Jason story">
+      <label>Subtitle (neon script)
+        <input id="subtitle-input" type="text" maxlength="48" value="a Lucia &amp; Jason story">
       </label>
-      <label class="field">Badge ribbon
-        <input id="badgeInput" type="text" maxlength="28" value="VICE CITY • EST. 2026">
+      <label>Badge ribbon
+        <input id="badge-input" type="text" maxlength="32" value="VICE CITY — EST. 2026">
       </label>
-      <div class="row">
-        <label class="field half">Title size
-          <input id="titleSizeInput" type="range" min="60" max="140" value="100">
-        </label>
-        <label class="field half">Heat ★
-          <input id="starsInput" type="range" min="0" max="5" step="1" value="5">
-        </label>
+      <label>Heat meter <span id="stars-val">5 / 5</span>
+        <input id="stars-input" type="range" min="0" max="5" step="1" value="5">
+      </label>
+      <label>Title size
+        <input id="title-size" type="range" min="0.6" max="1.4" step="0.05" value="1">
+      </label>
+      <label>Title position
+        <input id="title-y" type="range" min="0" max="1" step="0.05" value="0.2">
+      </label>
+      <div class="toggles">
+        <label><input id="grain-toggle" type="checkbox" checked> Film grain</label>
+        <label><input id="vignette-toggle" type="checkbox" checked> Vignette</label>
+        <label><input id="fillall-toggle" type="checkbox" checked> One photo fills all panels</label>
       </div>
     </section>
 
-    <section class="card">
+    <section>
       <h2>5 · Selected panel</h2>
-      <div class="row">
-        <label class="field half">Zoom
-          <input id="zoomInput" type="range" min="100" max="300" value="100">
-        </label>
-        <label class="field half">Rotate
-          <button id="rotateBtn">⟳ 90°</button>
-        </label>
-      </div>
-      <div class="row">
-        <label class="field half">Pan X
-          <input id="panXInput" type="range" min="-100" max="100" value="0">
-        </label>
-        <label class="field half">Pan Y
-          <input id="panYInput" type="range" min="-100" max="100" value="0">
-        </label>
-      </div>
-      <div class="row">
-        <button id="flipBtn">⇄ Flip</button>
-        <button id="swapPhotoBtn">🖼 Next photo in panel</button>
-      </div>
-    </section>
-
-    <section class="card">
-      <h2>6 · Finish</h2>
-      <label class="field">Export size
-        <select id="sizeSelect">
-          <option value="1080x1080">1080 × 1080 — square post</option>
-          <option value="1080x1350">1080 × 1350 — portrait post</option>
-          <option value="1920x1080" selected>1920 × 1080 — landscape / story wide</option>
-          <option value="1080x1920">1080 × 1920 — story</option>
-        </select>
+      <p id="panel-label" class="hint">Panel 1</p>
+      <div id="panel-chips" class="chip-row"></div>
+      <label>Photo
+        <select id="panel-photo"></select>
       </label>
-      <div class="row">
-        <label class="check"><input type="checkbox" id="grainBox" checked> Film grain</label>
-        <label class="check"><input type="checkbox" id="vignetteBox" checked> Vignette</label>
-        <label class="check"><input type="checkbox" id="halftoneBox" checked> Halftone title</label>
+      <label>Zoom <span id="zoom-val">100%</span>
+        <input id="zoom-range" type="range" min="0.5" max="4" step="0.05" value="1">
+      </label>
+      <label>Pan X <span id="panx-val">0.00</span>
+        <input id="panx-range" type="range" min="-1" max="1" step="0.01" value="0">
+      </label>
+      <label>Pan Y <span id="pany-val">0.00</span>
+        <input id="pany-range" type="range" min="-1" max="1" step="0.01" value="0">
+      </label>
+      <div class="btn-row">
+        <button id="rotate-btn" type="button">Rotate 90° <span id="rotate-val">0°</span></button>
+        <button id="flip-btn" type="button">Flip horizontal</button>
+        <button id="reset-panel-btn" type="button">Reset panel</button>
       </div>
-      <button id="exportBtn" class="primary big">⬇ Export PNG</button>
-      <p class="note">Presets — one click from photo to cover:</p>
-      <div class="row" id="presetRow"></div>
+      <p class="hint">Tip: click a panel on the cover to select it, drag to pan, scroll to zoom.</p>
     </section>
   </aside>
-</main>
 
-<footer class="foot">
-  <span>Original art, drawn in code. No Rockstar logo, artwork or font — lettering is a system condensed face.</span>
-  <span id="statusLine">Ready.</span>
-</footer>
+  <section class="preview">
+    <div id="drop-zone" class="drop-zone">
+      <canvas id="cover-canvas" width="720" height="720"></canvas>
+      <p class="drop-hint">Drop your photos here, or
+        <label class="upload-link">choose files
+          <input id="upload-input" type="file" accept="image/*" multiple hidden>
+        </label>
+      </p>
+    </div>
+    <p id="status" class="status" role="status">Ready.</p>
+    <p class="fineprint">Original art, painted in code — no Rockstar logo, artwork or font.
+      Your photos never leave your machine. Four sample scenes are included so you can
+      try every layout before you load your own photo.</p>
+  </section>
+</main>
 
 <script type="module" src="src/main.js"></script>
 </body>

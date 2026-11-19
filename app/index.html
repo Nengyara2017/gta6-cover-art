@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vice Coast Cover Studio — GTA-style cover art maker</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark">VC</span>
+    <div>
+      <h1>Vice Coast Cover Studio</h1>
+      <p>Any photo + a caption &rarr; GTA-poster-style cover art. Offline, no uploads.</p>
+    </div>
+  </div>
+  <div class="top-actions">
+    <button id="undoBtn" type="button" title="Undo">Undo</button>
+    <button id="redoBtn" type="button" title="Redo">Redo</button>
+    <button id="exportBtn" type="button" class="primary">Export PNG</button>
+  </div>
+</header>
+
+<main class="studio">
+  <section class="preview-pane" aria-label="Cover preview">
+    <div class="canvas-wrap">
+      <canvas id="cover" width="1920" height="1080" aria-label="Cover preview"></canvas>
+      <p id="panelHint" class="hint">Click a panel to select it — drag to pan, scroll to zoom.</p>
+    </div>
+    <div class="size-row" role="group" aria-label="Export size">
+      <span>Export size</span>
+      <button type="button" class="size-btn" data-size="1080x1080">1080 &times; 1080</button>
+      <button type="button" class="size-btn" data-size="1080x1350">1080 &times; 1350</button>
+      <button type="button" class="size-btn" data-size="1920x1080">1920 &times; 1080</button>
+    </div>
+    <p id="status" role="status"></p>
+  </section>
+
+  <aside class="controls" aria-label="Editor controls">
+    <section class="group">
+      <h2>1 · Photos</h2>
+      <label class="file-btn">Add photos&hellip;
+        <input id="photoInput" type="file" accept="image/*" multiple hidden>
+      </label>
+      <div class="sample-row">
+        <button type="button" class="sample-btn" data-sample="sunset-drive">Sample · Sunset Drive</button>
+        <button type="button" class="sample-btn" data-sample="neon-street">Sample · Neon Street</button>
+      </div>
+      <div id="library" class="library" aria-label="Photo library"></div>
+      <p class="note">Click a photo, then a panel, to fill that panel. Photos stay on your machine.</p>
+    </section>
+
+    <section class="group">
+      <h2>2 · Layout</h2>
+      <div class="chip-row" id="layoutRow">
+        <button type="button" class="chip" data-layout="vice-grid">Vice Grid</button>
+        <button type="button" class="chip" data-layout="nine">Nine Panel</button>
+        <button type="button" class="chip" data-layout="bleed">Full Bleed</button>
+        <button type="button" class="chip" data-layout="snaps">Tilted Snaps</button>
+      </div>
+    </section>
+
+    <section class="group">
+      <h2>3 · Colour grade</h2>
+      <div class="chip-row" id="gradeRow">
+        <button type="button" class="chip" data-grade="sunset">Sunset</button>
+        <button type="button" class="chip" data-grade="neon">Neon Night</button>
+        <button type="button" class="chip" data-grade="gold">Gold Hour</button>
+        <button type="button" class="chip" data-grade="teal">Teal Vice</button>
+        <button type="button" class="chip" data-grade="noir">Noir</button>
+      </div>
+    </section>
+
+    <section class="group">
+      <h2>4 · Selected panel</h2>
+      <p id="selectedLabel" class="note">Panel 1 of 3</p>
+      <label>Zoom <span id="zoomVal">100%</span>
+        <input id="zoomSlider" type="range" min="100" max="300" value="100">
+      </label>
+      <label>Pan left–right <span id="panXVal">0</span>
+        <input id="panXSlider" type="range" min="-100" max="100" value="0">
+      </label>
+      <label>Pan up–down <span id="panYVal">0</span>
+        <input id="panYSlider" type="range" min="-100" max="100" value="0">
+      </label>
+      <button id="resetCropBtn" type="button">Reset this panel&rsquo;s crop</button>
+    </section>
+
+    <section class="group">
+      <h2>5 · Caption</h2>
+      <label>Title
+        <input id="titleInput" type="text" maxlength="24" value="VICE COAST">
+      </label>
+      <label>Subtitle
+        <input id="subtitleInput" type="text" maxlength="40" value="one last ride">
+      </label>
+      <label>Badge
+        <input id="badgeInput" type="text" maxlength="16" value="VICE CITY">
+      </label>
+      <label>Heat stars
+        <select id="starsSelect">
+          <option value="0">0 — none</option>
+          <option value="1">1 star</option>
+          <option value="2">2 stars</option>
+          <option value="3">3 stars</option>
+          <option value="4" selected>4 stars</option>
+          <option value="5">5 stars</option>
+        </select>
+      </label>
+      <label>Title size <span id="titleSizeVal">100%</span>
+        <input id="titleSizeSlider" type="range" min="60" max="140" value="100">
+      </label>
+    </section>
+
+    <section class="group">
+      <h2>6 · Effects</h2>
+      <label class="check"><input id="fxSun" type="checkbox" checked> Procedural sun</label>
+      <label class="check"><input id="fxPalms" type="checkbox" checked> Palm silhouettes</label>
+      <label class="check"><input id="fxSkyline" type="checkbox" checked> Skyline</label>
+      <label class="check"><input id="fxHalftone" type="checkbox" checked> Halftone title band</label>
+      <label class="check"><input id="fxGrain" type="checkbox" checked> Film grain</label>
+    </section>
+
+    <p class="fineprint">Original art drawn in code. No Rockstar logo, artwork or font.
+    Fonts: Anton &amp; Pacifico under the SIL Open Font License.</p>
+  </aside>
+</main>
+
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>
